@@ -58,6 +58,16 @@ build() {
 
 	[[ "$ADD_APK_SCRIPT" ]] && cp /apk-install "$rootfs/usr/sbin/apk-install"
 
+       # make openrc work inside a container
+       sed -i 's/#rc_sys=""/rc_sys="lxc"/g' $rootfs/etc/rc.conf
+       echo 'rc_provide="loopback net"' >> $rootfs/etc/rc.conf
+       sed -i 's/^#\(rc_logger="YES"\)$/\1/' $rootfs/etc/rc.conf
+       sed -i '/tty/d' $rootfs/etc/inittab
+       sed -i 's/hostname $opts/# hostname $opts/g' $rootfs/etc/init.d/hostname
+       sed -i 's/mount -t tmpfs/# mount -t tmpfs/g' $rootfs/lib/rc/sh/init.sh
+       
+
+
 	# save
 	tar -z -f rootfs.tar.gz --numeric-owner -C "$rootfs" -c .
 	[[ "$STDOUT" ]] && cat rootfs.tar.gz
